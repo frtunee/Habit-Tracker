@@ -3,8 +3,27 @@ from datetime import date, timedelta, time, datetime
 import json
 from pathlib import Path
 from calendar import monthrange
+import os
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
+
+database_url = os.environ.get("DATABASE_URL", "sqlite:///habits.db")
+
+# SQLAlchemy's psycopg driver uses this URL form.
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace(
+        "postgres://", "postgresql+psycopg://", 1
+    )
+elif database_url.startswith("postgresql://"):
+    database_url = database_url.replace(
+        "postgresql://", "postgresql+psycopg://", 1
+    )
+
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db = SQLAlchemy(app)
 
 start_date = date(2026, 11, 20)
 
@@ -32,6 +51,20 @@ def save_data():
     data_file.write_text(
         json.dumps(saved_data, indent=2),
         encoding="utf-8"
+    )
+
+class Habit(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), unique=True, nullable=False)
+
+
+class Completion(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    habit_id = db.Column(db.Integer, db.ForeignKey("habit.id"), nullable=False)
+    day = db.Column(db.Date, nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint("habit_id", "day", name="unique_habit_day"),
     )
 
 @app.route("/", methods =["GET", "POST"])
@@ -206,6 +239,7 @@ def second_page():
         heatmap_months=heatmap_months,
     )
 
-
+with app.app_context():
+    db.create_all()
 if __name__ == "__main__":
     app.run(debug=True)
