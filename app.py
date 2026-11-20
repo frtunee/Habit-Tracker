@@ -132,6 +132,7 @@ def home():
         today=today,
         months=months,
         selected_month=selected_month,
+        active_page="home",
     )
 
 now = datetime.now()
@@ -140,6 +141,38 @@ today = now.date()
 tomorrow = today + timedelta(days=1)
 midnight = datetime.combine(tomorrow, time.min)
 remaining_seconds = int((midnight - now).total_seconds())
+
+@app.route("/second-page")
+def second_page():
+    year = date.today().year
+    year_start = date(year, 1,1)
+    next_year_start = date(year + 1, 1, 1)
+    days_in_year = (next_year_start - year_start).days
+
+    heatmap_days = []
+
+    for offset in range(days_in_year):
+        day = year_start + timedelta(days=offset)
+        count = 0
+
+        for entry in completed:
+            saved_data = entry.rsplit("|", 1)[-1]
+
+            if saved_data == day.isoformat():
+                count += 1
+
+        heatmap_days.append({
+            "date": day,
+            "count": count,
+            "level": min(count, 4),
+        })
+
+    return render_template(
+        "second_page.html",
+        active_page="second",
+        year=year,
+        heatmap_days=heatmap_days,
+    )
 
 
 if __name__ == "__main__":

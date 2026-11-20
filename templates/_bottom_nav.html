@@ -1,0 +1,26 @@
+<nav class="bottom-nav" aria-label="Main navigation">
+  <a
+    href="{{ url_for('home') }}"
+    class="{% if active_page == 'home' %}active{% endif %}"
+    {% if active_page == 'home' %}aria-current="page"{% endif %}
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>
+    </svg>
+    <span>Home</span>
+  </a>
+
+  <a
+    href="{{ url_for('second_page') }}"
+    class="{% if active_page == 'second' %}active{% endif %}"
+    {% if active_page == 'second' %}aria-current="page"{% endif %}
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3" y="3" width="8" height="8" rx="1"/>
+      <rect x="13" y="3" width="8" height="8" rx="1"/>
+      <rect x="3" y="13" width="8" height="8" rx="1"/>
+      <rect x="13" y="13" width="8" height="8" rx="1"/>
+    </svg>
+    <span>Page 2</span>
+  </a>
+</nav>

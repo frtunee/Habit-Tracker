@@ -78,3 +78,84 @@ button {
 .month-picker {
   margin-top: 8px;
 }
+
+body {
+  padding-bottom: 90px;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background: white;
+  border-top: 1px solid #ddd;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+}
+
+.bottom-nav a {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  color: #666;
+  text-decoration: none;
+  font-size: 0.8rem;
+}
+
+.bottom-nav svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bottom-nav a.active {
+  color: #2457a7;
+}
+
+.heatmap {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, 14px);
+  grid-auto-columns: 14px;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 8px 0 16px;
+}
+
+.heatmap-day {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background: #eee;
+}
+
+.heatmap-day.level-1 {
+  background: #fee2e2;
+}
+
+.heatmap-day.level-2 {
+  background: #fca5a5;
+}
+
+.heatmap-day.level-3 {
+  background: #ef4444;
+}
+
+.heatmap-day.level-4 {
+  background: #991b1b;
+}
+.heatmap-day {
+  width: 14px;
+  height: 14px;
+  border: 1px solid #c7c7c7;
+  border-radius: 3px;
+  background: #eee;
+}

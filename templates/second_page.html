@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Habit Tracker - Heatmap</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <main class="heatmap-page">
+      <h1>Habit activity</h1>
+      <p>{{ year }}</p>
+
+      <div class="heatmap" aria-label="Daily habit completions for {{ year }}">
+        {% for item in heatmap_days %}
+          <div
+            class="heatmap-day level-{{ item['level'] }}"
+            title="{{ item['date'].strftime('%d %b') }}: {{ item['count'] }} habits completed"
+            aria-label="{{ item['date'].strftime('%d %B') }}: {{ item['count'] }} habits completed"
+            role="img"
+          ></div>
+        {% endfor %}
+      </div>
+    </main>
+
+    {% include "_bottom_nav.html" %}
+  </body>
+</html>

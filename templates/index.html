@@ -7,7 +7,7 @@
   <body>
     <h1>Habit Tracker</h1>
 <div class="header-right">
-  <p><span id="countdown" data-seconds="{{ remaining_seconds }}"></span> remaining</p>
+  <h2><span id="countdown" data-seconds="{{ remaining_seconds }}"></span> remaining</h2>
 
   <form method="get" class="month-picker">
     <label for="month">Month</label>
@@ -86,7 +86,6 @@
       </div>
       <button type="submit">Save</button>
     </form>
-    <input type="hidden" name="action" value="save">
     <script>
   const countdown = document.getElementById("countdown");
   let secondsLeft = Number(countdown.dataset.seconds);
@@ -112,5 +111,6 @@
   updateCountdown();
   setInterval(updateCountdown, 1000);
 </script>
+  {% include "_bottom_nav.html" %}
   </body>
 </html>
