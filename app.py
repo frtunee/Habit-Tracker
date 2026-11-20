@@ -7,6 +7,8 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 from zoneinfo import ZoneInfo
 
+APP_TIMEZONE = ZoneInfo("Europe/Prague")
+
 app = Flask(__name__)
 
 database_url = os.environ.get("DATABASE_URL", "sqlite:///habits.db")
