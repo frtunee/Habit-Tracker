@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Habit Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <h1>Habit Tracker</h1>
+    <div class="top-bar">
+  {% if day_number is none %}
+    <h2>Starting soon</h2>
+  {% else %}
+    <h2>Day {{ day_number }}</h2>
+  {% endif %}
+
+  <p><span id="countdown" data-seconds="{{ remaining_seconds }}"></span> remaining</p>
+</div>
+<form method="post" class="add-habit-form">
+  <input type="hidden" name="action" value="add_habit">
+  <label for="new-habit">New habit</label>
+  <input id="new-habit" name="new_habit" type="text" required>
+  <button type="submit">Add habit</button>
+</form>
+    <form method="post">
+      <input type="hidden" name="action" value="save">
+      <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Habit</th>
+            {% for day in dates %}
+             <th>{{ day.strftime("%d.%m.") }}</th>
+            {% endfor %}
+          </tr>
+       </thead>
+
+        <tbody>
+        {% for habit in habits %}
+          <tr>
+            <th>{{ habit }}</th>
+            {% for day in dates %}
+              <td>
+                <input
+                   type="checkbox"
+                    name="completed"
+                    value="{{ habit }}|{{ day.isoformat() }}"
+                    {% if (habit ~ "|" ~ day.isoformat()) in completed %}checked{% endif %}
+                 >
+                </td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+      </table>
+      </div>
+      <button type="submit">Save</button>
+    </form>
+    <script>
+  const countdown = document.getElementById("countdown");
+  let secondsLeft = Number(countdown.dataset.seconds);
+
+  function updateCountdown() {
+    if (secondsLeft <= 0) {
+      window.location.reload();
+      return;
+    }
+
+    const hours = Math.floor(secondsLeft / 3600);
+    const minutes = Math.floor((secondsLeft % 3600) / 60);
+    const seconds = secondsLeft % 60;
+
+    countdown.textContent =
+      `${String(hours).padStart(2, "0")}:` +
+      `${String(minutes).padStart(2, "0")}:` +
+      `${String(seconds).padStart(2, "0")}`;
+
+    secondsLeft -= 1;
+  }
+
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+</script>
+  </body>
+</html>
