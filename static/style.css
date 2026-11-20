@@ -120,20 +120,36 @@ body {
   color: #2457a7;
 }
 
-.heatmap {
+.heatmap-year {
   display: grid;
-  grid-auto-flow: column;
-  grid-template-rows: repeat(7, 14px);
-  grid-auto-columns: 14px;
-  gap: 4px;
-  overflow-x: auto;
-  padding: 8px 0 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 8px;
+}
+
+.heatmap-month {
+  min-width: 0;
+}
+
+.heatmap-month h2 {
+  margin: 0 0 6px;
+  font-size: 0.8rem;
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+}
+
+.heatmap-day,
+.heatmap-empty {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 3px;
 }
 
 .heatmap-day {
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
+  border: 1px solid #c7c7c7;
   background: #eee;
 }
 
@@ -142,15 +158,35 @@ body {
 }
 
 .heatmap-day.level-2 {
-  background: #fca5a5;
+  background: #fcb9b9;
 }
 
 .heatmap-day.level-3 {
-  background: #ef4444;
+  background: #ff7c7c;
 }
 
 .heatmap-day.level-4 {
-  background: #991b1b;
+  background: #f54d4d;
+}
+
+.heatmap-day.level-5 {
+  background: #db2f2f;
+}
+
+.heatmap-day.level-6 {
+  background: #e71010;
+}
+
+.heatmap-day.level-7 {
+  background: #a71515;
+}
+
+.heatmap-day.level-8 {
+  background: #5f0808;
+}
+
+.heatmap-day.level-9 {
+  background: #1f0000;
 }
 .heatmap-day {
   width: 14px;
@@ -158,4 +194,290 @@ body {
   border: 1px solid #c7c7c7;
   border-radius: 3px;
   background: #eee;
+}
+
+.header-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.header-right p {
+  margin: 0 0 8px;
+}
+
+.habit-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.add-habit-toggle,
+.remove-button,
+.add-habit-form button {
+  margin: 0;
+  min-height: 30px;
+  padding: 2px 8px;
+  font: inherit;
+}
+
+.add-habit-toggle {
+  width: 30px;
+  border-radius: 50%;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.remove-button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #777;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.remove-button:hover,
+.remove-button:focus-visible {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.add-habit-form {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.add-habit-form[hidden] {
+  display: none;
+}
+
+.add-habit-form input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  padding: 8px;
+}
+
+:root {
+  color-scheme: light;
+  --ink: #202638;
+  --muted: #788196;
+  --blue: #3568d4;
+  --blue-soft: #edf3ff;
+  --red: #d95766;
+  --line: #e6e9f0;
+  --surface: #fff;
+}
+
+body {
+  min-height: 100vh;
+  padding: 24px 14px calc(100px + env(safe-area-inset-bottom));
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background:
+    radial-gradient(ellipse at 10% 0%, #fff0f1 0, transparent 38%),
+    radial-gradient(ellipse at 100% 10%, #edf3ff 0, transparent 42%),
+    #f6f7fb;
+}
+
+h1 {
+  margin: 0 0 14px;
+  font-size: 1.65rem;
+  letter-spacing: -0.04em;
+}
+
+.page-header,
+.add-habit-form,
+.table-scroll,
+.heatmap-page {
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.header-line {
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 24px rgba(44, 57, 83, 0.07);
+}
+
+.header-right p {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.month-picker select,
+.add-habit-form input {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+  color: var(--ink);
+  font: inherit;
+}
+
+.add-habit-form {
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 5px 18px rgba(44, 57, 83, 0.05);
+}
+
+.add-habit-form input {
+  flex: 1;
+  min-width: 0;
+}
+
+.add-habit-form button {
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--blue);
+  color: white;
+  font: inherit;
+  font-weight: 600;
+}
+
+.add-habit-form[hidden] {
+  display: none;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 8px 24px rgba(44, 57, 83, 0.07);
+}
+
+th,
+td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #edf0f5;
+}
+
+thead th,
+th:first-child {
+  background: #f8faff;
+}
+
+.habit-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.add-habit-toggle {
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.remove-button {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  background: #fff0f1;
+  color: var(--red);
+  font-size: 20px;
+  line-height: 1;
+}
+
+input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--blue);
+}
+
+.bottom-nav {
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-bottom: 0;
+  border-radius: 22px 22px 0 0;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: 0 -6px 24px rgba(44, 57, 83, 0.08);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  backdrop-filter: saturate(180%) blur(18px);
+}
+
+.bottom-nav a {
+  min-height: 52px;
+  color: var(--muted);
+}
+
+.bottom-nav a.active {
+  border-radius: 14px;
+  background: rgba(53, 104, 212, 0.08);
+  color: var(--blue);
+}
+
+.heatmap-month {
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 5px 16px rgba(44, 57, 83, 0.05);
+}
+
+.heatmap-month h2 {
+  color: var(--blue);
+}
+
+.heatmap-day {
+  border-color: #d9deea;
+  background: #f0f2f7;
+}
+
+.heatmap-day.level-1 {
+  border-color: #f2c9ce;
+  background: #fde5e8;
+}
+
+.heatmap-day.level-2 {
+  border-color: #e995a0;
+  background: #f6aeb7;
+}
+
+.heatmap-day.level-3 {
+  border-color: #d95766;
+  background: #df6673;
+}
+
+.heatmap-day.level-4 {
+  border-color: #a52e40;
+  background: #b93649;
+}
+
+@supports not ((backdrop-filter: blur(1px))) {
+  .bottom-nav {
+    background: rgba(255, 255, 255, 0.96);
+  }
 }

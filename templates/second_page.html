@@ -3,22 +3,35 @@
   <head>
     <title>Habit Tracker - Heatmap</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   </head>
   <body>
     <main class="heatmap-page">
       <h1>Habit activity</h1>
       <p>{{ year }}</p>
 
-      <div class="heatmap" aria-label="Daily habit completions for {{ year }}">
-        {% for item in heatmap_days %}
-          <div
-            class="heatmap-day level-{{ item['level'] }}"
-            title="{{ item['date'].strftime('%d %b') }}: {{ item['count'] }} habits completed"
-            aria-label="{{ item['date'].strftime('%d %B') }}: {{ item['count'] }} habits completed"
-            role="img"
-          ></div>
+      <div class="heatmap-year">
+  {% for month in heatmap_months %}
+    <section class="heatmap-month">
+      <h2>{{ month["name"] }}</h2>
+
+      <div class="month-grid">
+        {% for cell in month["cells"] %}
+          {% if cell %}
+            <div
+              class="heatmap-day level-{{ cell['level'] }}"
+              title="{{ cell['date'].strftime('%d %b') }}: {{ cell['count'] }} habits completed"
+              aria-label="{{ cell['date'].strftime('%d %B') }}: {{ cell['count'] }} habits completed"
+              role="img"
+            ></div>
+          {% else %}
+            <span class="heatmap-empty" aria-hidden="true"></span>
+          {% endif %}
         {% endfor %}
       </div>
+    </section>
+  {% endfor %}
+</div>
     </main>
 
     {% include "_bottom_nav.html" %}

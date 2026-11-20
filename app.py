@@ -142,36 +142,68 @@ tomorrow = today + timedelta(days=1)
 midnight = datetime.combine(tomorrow, time.min)
 remaining_seconds = int((midnight - now).total_seconds())
 
+@app.route("/toggle-checkbox", methods=["POST"])
+def toggle_checkbox():
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+        return {"error": "Invalid checkbox data"}, 400
+
+    entry = data.get("entry")
+    is_checked = data.get("checked")
+
+    if not isinstance(entry, str) or not isinstance(is_checked, bool):
+        return {"error": "Invalid checkbox data"}, 400
+
+    if is_checked:
+        completed.add(entry)
+    else:
+        completed.discard(entry)
+
+    save_data()
+    return {"saved": True}
+
 @app.route("/second-page")
 def second_page():
     year = date.today().year
-    year_start = date(year, 1,1)
-    next_year_start = date(year + 1, 1, 1)
-    days_in_year = (next_year_start - year_start).days
+    heatmap_months = []
 
-    heatmap_days = []
+    for month_number in range(1, 13):
+        month_start = date(year, month_number, 1)
+        days_in_month = monthrange(year, month_number)[1]
 
-    for offset in range(days_in_year):
-        day = year_start + timedelta(days=offset)
-        count = 0
+        # Start the calendar row on Monday.
+        cells = [None] * month_start.weekday()
 
-        for entry in completed:
-            saved_data = entry.rsplit("|", 1)[-1]
+        for day_in_month in range(1, days_in_month + 1):
+            day = date(year, month_number, day_in_month)
+            count = 0
 
-            if saved_data == day.isoformat():
-                count += 1
+            for entry in completed:
+                saved_date = entry.rsplit("|", 1)[-1]
+                if saved_date == day.isoformat():
+                    count += 1
 
-        heatmap_days.append({
-            "date": day,
-            "count": count,
-            "level": min(count, 4),
+            cells.append({
+                "date": day,
+                "count": count,
+                "level": min(count, 4),
+            })
+
+        # Fill the final week with blank spaces.
+        while len(cells) % 7 != 0:
+            cells.append(None)
+
+        heatmap_months.append({
+            "name": month_start.strftime("%b"),
+            "cells": cells,
         })
 
     return render_template(
         "second_page.html",
         active_page="second",
         year=year,
-        heatmap_days=heatmap_days,
+        heatmap_months=heatmap_months,
     )
 
 

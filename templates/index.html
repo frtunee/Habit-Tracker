@@ -3,12 +3,22 @@
   <head>
     <title>Habit Tracker</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   </head>
   <body>
-    <h1>Habit Tracker</h1>
+        <h1 class="centered">Habit Tracker</h1>
+        <style>
+          .centered{
+            text-align: center;
+          }
+        </style>
+    {% if day_number is none %}
+      <strong>Starting soon</strong>
+    {% else %}
+      <h1>Day {{ day_number }}</h1>
+    {% endif %}
 <div class="header-right">
-  <h2><span id="countdown" data-seconds="{{ remaining_seconds }}"></span> remaining</h2>
-
+  <h4><span id="countdown" data-seconds="{{ remaining_seconds }}"></span> remaining</h4> 
   <form method="get" class="month-picker">
     <label for="month">Month</label>
     <select id="month" name="month" onchange="this.form.submit()">
@@ -22,19 +32,28 @@
       {% endfor %}
     </select>
     <noscript><button type="submit">View</button></noscript>
+  </div>
+</header>
   </form>
 </div>
-<form method="post" class="add-habit-form">
+<form method="post" id="add-habit-form" class="add-habit-form" hidden>
   <input type="hidden" name="action" value="add_habit">
-  <label for="new-habit">New habit</label>
-  <input id="new-habit" name="new_habit" type="text" required>
-  <button type="submit">Add habit</button>
   <input
-  type="hidden"
-  name="selected_month"
-  value="{{ selected_month.strftime('%Y-%m') }}"
->
+    type="hidden"
+    name="selected_month"
+    value="{{ selected_month.strftime('%Y-%m') }}"
+  >
+  <input
+    id="new-habit"
+    name="new_habit"
+    type="text"
+    placeholder="Habit name"
+    aria-label="New habit name"
+    required
+  >
+  <button type="submit">Add</button>
 </form>
+
     <form method="post">
       <input type="hidden" name="action" value="save">
       <input
@@ -46,7 +65,16 @@
       <table>
         <thead>
           <tr>
-            <th>Habit</th>
+            <th class="habit-heading">
+  <span>Habit</span>
+  <button
+    type="button"
+    id="toggle-add-habit"
+    class="add-habit-toggle"
+    aria-label="Add a habit"
+    aria-expanded="false"
+  >+</button>
+</th>
             {% for day in dates %}
              <th>{{ day.strftime("%d.%m.") }}</th>
             {% endfor %}
@@ -58,15 +86,15 @@
           <tr>
             <th>
   {{ habit }}
-  <button
-    type="submit"
-    name="remove_habit"
-    value="{{ habit }}"
-    class="remove-button"
-    onclick="return confirm('Remove this habit and its saved checkmarks?')"
-  >
-    Remove
-  </button>
+<button
+  type="submit"
+  name="remove_habit"
+  value="{{ habit }}"
+  class="remove-button"
+  aria-label="Remove {{ habit }}"
+  title="Remove {{ habit }}"
+  onclick="return confirm('Remove this habit and its saved checkmarks?')"
+>×</button>
 </th>
             {% for day in dates %}
               <td>
@@ -84,7 +112,6 @@
           </tbody>
       </table>
       </div>
-      <button type="submit">Save</button>
     </form>
     <script>
   const countdown = document.getElementById("countdown");
@@ -110,6 +137,48 @@
 
   updateCountdown();
   setInterval(updateCountdown, 1000);
+  const checkboxSaveUrl = "{{ url_for('toggle_checkbox') }}";
+
+document.querySelectorAll('input[name="completed"]').forEach((checkbox) => {
+  checkbox.addEventListener("change", async () => {
+    const checkedNow = checkbox.checked;
+    checkbox.disabled = true;
+
+    try {
+      const response = await fetch(checkboxSaveUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          entry: checkbox.value,
+          checked: checkedNow
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Save failed");
+      }
+    } catch (error) {
+      checkbox.checked = !checkedNow;
+      alert("Could not save that change. Please try again.");
+    } finally {
+      checkbox.disabled = false;
+    }
+  });
+});
+const addHabitToggle = document.getElementById("toggle-add-habit");
+const addHabitForm = document.getElementById("add-habit-form");
+const newHabitInput = document.getElementById("new-habit");
+
+addHabitToggle.addEventListener("click", () => {
+  addHabitForm.hidden = !addHabitForm.hidden;
+  addHabitToggle.setAttribute("aria-expanded", String(!addHabitForm.hidden));
+
+  if (!addHabitForm.hidden) {
+    newHabitInput.focus();
+  }
+});
 </script>
   {% include "_bottom_nav.html" %}
   </body>
