@@ -5,6 +5,7 @@ from pathlib import Path
 from calendar import monthrange
 import os
 from flask_sqlalchemy import SQLAlchemy
+from zoneinfo import ZoneInfo
 
 app = Flask(__name__)
 
@@ -109,12 +110,13 @@ def home():
                 habits.append(new_habit)
                 save_data()
 
-    now = datetime.now()
+    now = datetime.now(APP_TIMEZONE)
     today = now.date()
 
     tomorrow = today + timedelta(days=1)
-    midnight = datetime.combine(tomorrow, time.min)
-    remaining_seconds = int((midnight - now).total_seconds())
+    midnight = datetime.combine(tomorrow, time.min, tzinfo=APP_TIMEZONE)
+
+    remaining_seconds = int(midnight.timestamp() - now.timestamp())
 
     if today < start_date:
         day_number = None
@@ -198,7 +200,7 @@ def toggle_checkbox():
 
 @app.route("/second-page")
 def second_page():
-    year = date.today().year
+    year = datetime.now(APP_TIMEZONE).year
     heatmap_months = []
 
     for month_number in range(1, 13):
