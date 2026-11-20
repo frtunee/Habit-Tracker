@@ -70,3 +70,11 @@ button {
 .top-bar p {
   margin: 0 0 16px;
 }
+
+.header-right {
+  text-align: right;
+}
+
+.month-picker {
+  margin-top: 8px;
+}

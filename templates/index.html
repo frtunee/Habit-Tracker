@@ -6,23 +6,42 @@
   </head>
   <body>
     <h1>Habit Tracker</h1>
-    <div class="top-bar">
-  {% if day_number is none %}
-    <h2>Starting soon</h2>
-  {% else %}
-    <h2>Day {{ day_number }}</h2>
-  {% endif %}
-
+<div class="header-right">
   <p><span id="countdown" data-seconds="{{ remaining_seconds }}"></span> remaining</p>
+
+  <form method="get" class="month-picker">
+    <label for="month">Month</label>
+    <select id="month" name="month" onchange="this.form.submit()">
+      {% for month_option in months %}
+        <option
+          value="{{ month_option.strftime('%Y-%m') }}"
+          {% if month_option == selected_month %}selected{% endif %}
+        >
+          {{ month_option.strftime("%B %Y") }}
+        </option>
+      {% endfor %}
+    </select>
+    <noscript><button type="submit">View</button></noscript>
+  </form>
 </div>
 <form method="post" class="add-habit-form">
   <input type="hidden" name="action" value="add_habit">
   <label for="new-habit">New habit</label>
   <input id="new-habit" name="new_habit" type="text" required>
   <button type="submit">Add habit</button>
+  <input
+  type="hidden"
+  name="selected_month"
+  value="{{ selected_month.strftime('%Y-%m') }}"
+>
 </form>
     <form method="post">
       <input type="hidden" name="action" value="save">
+      <input
+        type="hidden"
+        name="selected_month"
+        value="{{ selected_month.strftime('%Y-%m') }}"
+      >
       <div class="table-scroll">
       <table>
         <thead>
@@ -56,7 +75,7 @@
                     name="completed"
                     value="{{ habit }}|{{ day.isoformat() }}"
                     {% if (habit ~ "|" ~ day.isoformat()) in completed %}checked{% endif %}
-                    {% if day < start_date or day > today %}disabled{% endif %}
+                    {% if day > today %}disabled{% endif %}
                  >
                 </td>
                 {% endfor %}
@@ -67,6 +86,7 @@
       </div>
       <button type="submit">Save</button>
     </form>
+    <input type="hidden" name="action" value="save">
     <script>
   const countdown = document.getElementById("countdown");
   let secondsLeft = Number(countdown.dataset.seconds);

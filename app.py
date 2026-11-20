@@ -31,7 +31,7 @@ def save_data():
     }
     data_file.write_text(
         json.dumps(saved_data, indent=2),
-        encoding="utf-á"
+        encoding="utf-8"
     )
 
 @app.route("/", methods =["GET", "POST"])
@@ -47,16 +47,27 @@ def home():
                 old_checkmarks = {
                     entry
                     for entry in completed
-                    if entry.startswitch(f"{remove_habit}|")
+                    if entry.startswith(f"{remove_habit}|")
                 }
                 completed.difference_update(old_checkmarks)
 
                 save_data()
 
         elif action == "save":
-            completed.clear()
-            completed.update(request.form.getlist("completed"))
-            save_data()
+            selected_month_text = request.form.get("selected_month")
+
+            if selected_month_text:
+                month_prefix = selected_month_text + "-"
+                checks_from_other_months = {
+                    entry
+                    for entry in completed
+                    if not entry.rsplit("|", 1)[-1].startswith(month_prefix)
+                }
+
+                completed.clear()
+                completed.update(checks_from_other_months)
+                completed.update(request.form.getlist("completed"))
+                save_data()
 
         elif action == "add_habit":
             new_habit = request.form.get("new_habit", "").strip()
@@ -65,19 +76,50 @@ def home():
                 habits.append(new_habit)
                 save_data()
 
-    today = date.today()
+    now = datetime.now()
+    today = now.date()
+
+    tomorrow = today + timedelta(days=1)
+    midnight = datetime.combine(tomorrow, time.min)
+    remaining_seconds = int((midnight - now).total_seconds())
 
     if today < start_date:
         day_number = None
-        dates = []
     else:
         day_number = (today - start_date).days + 1
 
-        dates = []
-        days_in_month = monthrange(today.year, today.month)[1]
+    current_month = date(today.year, today.month, 1)
 
-        for days_in_month in range(1, days_in_month + 1):
-            dates.append(date(today.year, today.month, days_in_month))
+    months = []
+    month_cursor = date(start_date.year, start_date.month, 1)
+
+    while month_cursor <= current_month:
+        months.append(month_cursor)
+
+        if month_cursor.month == 12:
+            month_cursor = date(month_cursor.year + 1, 1, 1)
+        else:
+            month_cursor = date(month_cursor.year, month_cursor.month + 1, 1)
+
+    if request.method == "POST":
+        requested_month = request.form.get("selected_month")
+    else:
+        requested_month = request.args.get("month")
+
+    try:
+        year_text, month_text = requested_month.split("-")
+        selected_month = date(int(year_text), int(month_text), 1)
+    except (AttributeError, ValueError):
+        selected_month = current_month
+
+    if selected_month not in months:
+        selected_month = current_month
+
+    days_in_month = monthrange(selected_month.year, selected_month.month)[1]
+    dates = []
+
+    for day_in_month in range(1, days_in_month + 1):
+        dates.append(date(selected_month.year, selected_month.month, day_in_month))
 
     return render_template(
         "index.html",
@@ -88,6 +130,8 @@ def home():
         remaining_seconds=remaining_seconds,
         start_date=start_date,
         today=today,
+        months=months,
+        selected_month=selected_month,
     )
 
 now = datetime.now()
