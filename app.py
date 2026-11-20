@@ -28,7 +28,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
-start_date = date(2026, 11, 20)
+start_date = date(2026, 11, 21)
 
 default_habits = ["Train", "Learn Python"]
 data_file = Path(__file__).with_name("habits.json")
