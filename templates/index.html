@@ -37,7 +37,18 @@
         <tbody>
         {% for habit in habits %}
           <tr>
-            <th>{{ habit }}</th>
+            <th>
+  {{ habit }}
+  <button
+    type="submit"
+    name="remove_habit"
+    value="{{ habit }}"
+    class="remove-button"
+    onclick="return confirm('Remove this habit and its saved checkmarks?')"
+  >
+    Remove
+  </button>
+</th>
             {% for day in dates %}
               <td>
                 <input
@@ -45,6 +56,7 @@
                     name="completed"
                     value="{{ habit }}|{{ day.isoformat() }}"
                     {% if (habit ~ "|" ~ day.isoformat()) in completed %}checked{% endif %}
+                    {% if day < start_date or day > today %}disabled{% endif %}
                  >
                 </td>
                 {% endfor %}
