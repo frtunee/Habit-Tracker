@@ -87,14 +87,14 @@
         {% for habit in habits %}
           <tr>
             <th>
-  {{ habit }}
+  {{ habit.name }}
 <button
   type="submit"
   name="remove_habit"
-  value="{{ habit }}"
+  value="{{ habit.name }}"
   class="remove-button"
-  aria-label="Remove {{ habit }}"
-  title="Remove {{ habit }}"
+  aria-label="Remove {{ habit.name }}"
+  title="Remove {{ habit.name }}"
   onclick="return confirm('Remove this habit and its saved checkmarks?')"
 >×</button>
 </th>
@@ -103,8 +103,8 @@
                 <input
                    type="checkbox"
                     name="completed"
-                    value="{{ habit }}|{{ day.isoformat() }}"
-                    {% if (habit ~ "|" ~ day.isoformat()) in completed %}checked{% endif %}
+                    value="{{ habit.name }}|{{ day.isoformat() }}"
+                    {% if (habit.name ~ "|" ~ day.isoformat()) in completed %}checked{% endif %}
                     {% if day > today %}disabled{% endif %}
                  >
                 </td>
