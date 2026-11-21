@@ -20,9 +20,9 @@
       <h4><span id="countdown" data-seconds="{{ remaining_seconds }}"></span> remaining</h4>
     </div>
     {% endif %}
-<div class="header-right">
+<h5></h5><div class="header-right">
   <form method="get" class="month-picker">
-    <h4><label for="month">Month</label></h4>
+    <label for="month">Month</label>
     <select id="month" name="month" onchange="this.form.submit()">
       {% for month_option in months %}
         <option
@@ -34,7 +34,7 @@
       {% endfor %}
     </select>
     <noscript><button type="submit">View</button></noscript>
-  </div>
+  </div></h5>
 </header>
   </form>
 </div>
