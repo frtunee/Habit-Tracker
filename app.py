@@ -1,7 +1,5 @@
 from flask import Flask, render_template, request
 from datetime import date, timedelta, time, datetime
-import json
-from pathlib import Path
 from calendar import monthrange
 import os
 from flask_sqlalchemy import SQLAlchemy
@@ -13,7 +11,6 @@ app = Flask(__name__)
 
 database_url = os.environ.get("DATABASE_URL", "sqlite:///habits.db")
 
-# SQLAlchemy's psycopg driver uses this URL form.
 if database_url.startswith("postgres://"):
     database_url = database_url.replace(
         "postgres://", "postgresql+psycopg://", 1
@@ -31,34 +28,15 @@ db = SQLAlchemy(app)
 start_date = date(2026, 11, 21)
 
 default_habits = ["Train", "Learn Python"]
-data_file = Path(__file__).with_name("habits.json")
-
-if data_file.exists():
-    saved_data = json.loads(data_file.read_text(encoding="utf-8"))
-
-    if isinstance(saved_data, list):
-        habits = default_habits.copy()
-        completed = set(saved_data)
-    else:
-        habits = saved_data.get("habits", default_habits.copy())
-        completed = set(saved_data.get("completed", []))
-else:
-    habits = default_habits.copy()
-    completed = set()
-
-def save_data():
-    saved_data = {
-        "habits": habits,
-        "completed": sorted(completed),
-    }
-    data_file.write_text(
-        json.dumps(saved_data, indent=2),
-        encoding="utf-8"
-    )
 
 class Habit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True, nullable=False)
+    completions = db.relationship(
+        "Completion",
+        backref="habit",
+        cascade="all, delete-orphan",
+    )
 
 
 class Completion(db.Model):
@@ -70,54 +48,62 @@ class Completion(db.Model):
         db.UniqueConstraint("habit_id", "day", name="unique_habit_day"),
     )
 
+def get_tracker_data():
+    habit_rows = db.session.execute(
+        db.select(Habit).order_by(Habit.id)
+    ).scalars().all()
+
+    completion_rows = db.session.execute(
+        db.select(Completion, Habit)
+        .join(Habit)
+    ).all()
+
+    completed = {
+        f"{habit.name}|{completion.day.isoformat()}"
+        for completion, habit in completion_rows
+    }
+
+    return habit_rows, completed    
+
 @app.route("/", methods =["GET", "POST"])
 def home():
     if request.method == "POST":
+
         remove_habit = request.form.get("remove_habit")
         action = request.form.get("action")
 
         if remove_habit is not None:
-            if remove_habit in habits:
-                habits.remove(remove_habit)
+            habit = db.session.execute(
+                db.select(Habit).filter_by(name=remove_habit)
+            ).scalar_one_or_none()
 
-                old_checkmarks = {
-                    entry
-                    for entry in completed
-                    if entry.startswith(f"{remove_habit}|")
-                }
-                completed.difference_update(old_checkmarks)
-
-                save_data()
-
-        elif action == "save":
-            selected_month_text = request.form.get("selected_month")
-
-            if selected_month_text:
-                month_prefix = selected_month_text + "-"
-                checks_from_other_months = {
-                    entry
-                    for entry in completed
-                    if not entry.rsplit("|", 1)[-1].startswith(month_prefix)
-                }
-
-                completed.clear()
-                completed.update(checks_from_other_months)
-                completed.update(request.form.getlist("completed"))
-                save_data()
+            if habit is not None:
+                db.session.delete(habit)
+                db.session.commit()
 
         elif action == "add_habit":
             new_habit = request.form.get("new_habit", "").strip()
 
-            if new_habit and new_habit not in habits:
-                habits.append(new_habit)
-                save_data()
+            if new_habit:
+                existing_habit = db.session.execute(
+                    db.select(Habit).filter_by(name=new_habit)
+                ).scalar_one_or_none()
+
+                if existing_habit is None:
+                    db.session.add(Habit(name=new_habit))
+                    db.session.commit()
+
+    habits, completed = get_tracker_data()
 
     now = datetime.now(APP_TIMEZONE)
+
     today = now.date()
-
     tomorrow = today + timedelta(days=1)
-    midnight = datetime.combine(tomorrow, time.min, tzinfo=APP_TIMEZONE)
-
+    midnight = datetime.combine(
+        tomorrow,
+        time.min,
+        tzinfo=APP_TIMEZONE,
+    )
     remaining_seconds = int(midnight.timestamp() - now.timestamp())
 
     if today < start_date:
@@ -172,13 +158,6 @@ def home():
         active_page="home",
     )
 
-now = datetime.now()
-today = now.date()
-
-tomorrow = today + timedelta(days=1)
-midnight = datetime.combine(tomorrow, time.min)
-remaining_seconds = int((midnight - now).total_seconds())
-
 @app.route("/toggle-checkbox", methods=["POST"])
 def toggle_checkbox():
     data = request.get_json(silent=True)
@@ -192,34 +171,57 @@ def toggle_checkbox():
     if not isinstance(entry, str) or not isinstance(is_checked, bool):
         return {"error": "Invalid checkbox data"}, 400
 
-    if is_checked:
-        completed.add(entry)
-    else:
-        completed.discard(entry)
+    try:
+        habit_name, day_text = entry.rsplit("|", 1)
+        completion_day = date.fromisoformat(day_text)
+    except ValueError:
+        return {"error": "Invalid checkbox entry"}, 400
 
-    save_data()
+    habit = db.session.execute(
+        db.select(Habit).filter_by(name=habit_name)
+    ).scalar_one_or_none()
+
+    if habit is None:
+        return {"error": "Habit not found"}, 404
+
+    completion = db.session.execute(
+        db.select(Completion).filter_by(
+            habit_id=habit.id,
+            day=completion_day,
+        )
+    ).scalar_one_or_none()
+
+    if is_checked and completion is None:
+        db.session.add(Completion(habit_id=habit.id, day=completion_day))
+    elif not is_checked and completion is not None:
+        db.session.delete(completion)
+
+    db.session.commit()
     return {"saved": True}
 
 @app.route("/second-page")
 def second_page():
     year = datetime.now(APP_TIMEZONE).year
     heatmap_months = []
+    completion_rows = db.session.execute(
+        db.select(Completion.day, db.func.count(Completion.id))
+        .group_by(Completion.day)
+    ).all()
+
+    completion_counts = {
+        day: count
+        for day, count in completion_rows
+    }
 
     for month_number in range(1, 13):
         month_start = date(year, month_number, 1)
         days_in_month = monthrange(year, month_number)[1]
 
-        # Start the calendar row on Monday.
         cells = [None] * month_start.weekday()
 
         for day_in_month in range(1, days_in_month + 1):
             day = date(year, month_number, day_in_month)
-            count = 0
-
-            for entry in completed:
-                saved_date = entry.rsplit("|", 1)[-1]
-                if saved_date == day.isoformat():
-                    count += 1
+            count = completion_counts.get(day, 0)
 
             cells.append({
                 "date": day,
@@ -227,7 +229,6 @@ def second_page():
                 "level": min(count, 4),
             })
 
-        # Fill the final week with blank spaces.
         while len(cells) % 7 != 0:
             cells.append(None)
 
