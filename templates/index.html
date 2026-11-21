@@ -15,10 +15,12 @@
     {% if day_number is none %}
       <strong>Starting soon</strong>
     {% else %}
+    <div style="display: flex; justify-content: space-between; width: 100%;">
       <h1>Day {{ day_number }}</h1>
+      <h4><span id="countdown" data-seconds="{{ remaining_seconds }}"></span> remaining</h4>
+    </div>
     {% endif %}
 <div class="header-right">
-  <h4><span id="countdown" data-seconds="{{ remaining_seconds }}"></span> remaining</h4> 
   <form method="get" class="month-picker">
     <label for="month">Month</label>
     <select id="month" name="month" onchange="this.form.submit()">
