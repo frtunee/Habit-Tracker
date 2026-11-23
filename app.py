@@ -107,16 +107,45 @@ def home():
                 db.session.delete(habit)
                 db.session.commit()
 
-        elif action == "add_habit":
-            new_habit = request.form.get("new_habit", "").strip()
+            elif action == "add_habit":
+                new_habit = request.form.get("new_habit", "").strip()
+                description = request.form.get("description", "").strip()
 
-            if new_habit:
+                try:
+                    value = int(request.form.get("value", "1"))
+                except ValueError:
+                    value = 0
+
+                new_category = request.form.get("new_category", "").strip()
+                category_id = request.form.get("category_id", "").strip()
+
+                category = None
+
+                if new_category:
+                    category = db.session.execute(
+                        db.select(Category).filter_by(name=new_category)
+                    ).scalar_one_or_none()
+
+                    if category is None:
+                        category = Category(name=new_category)
+                elif category_id:
+                    try:
+                        category = db.session.get(Category, int(category_id))
+                    except ValueError:
+                        category = None
+
                 existing_habit = db.session.execute(
                     db.select(Habit).filter_by(name=new_habit)
                 ).scalar_one_or_none()
 
-                if existing_habit is None:
-                    db.session.add(Habit(name=new_habit))
+                if new_habit and 1 <= value <= 5 and existing_habit is None:
+                    habit = Habit(
+                        name=new_habit,
+                        description=description,
+                        value=value,
+                        category=category,
+                    )
+                    db.session.add(habit)
                     db.session.commit()
 
     habits, completed = get_tracker_data()
@@ -169,6 +198,9 @@ def home():
 
     for day_in_month in range(1, days_in_month + 1):
         dates.append(date(selected_month.year, selected_month.month, day_in_month))
+    categories = db.session.execute(
+        db.select(Category).order_by(Category.name)
+    ).scalars().all()
 
     return render_template(
         "index.html",
@@ -182,6 +214,7 @@ def home():
         months=months,
         selected_month=selected_month,
         active_page="home",
+        categories=categories,
     )
 
 @app.route("/toggle-checkbox", methods=["POST"])
@@ -229,14 +262,20 @@ def toggle_checkbox():
 def second_page():
     year = datetime.now(APP_TIMEZONE).year
     heatmap_months = []
+
     completion_rows = db.session.execute(
-        db.select(Completion.day, db.func.count(Completion.id))
+        db.select(
+            Completion.day,
+            db.func.count(Completion.id),
+            db.func.sum(Habit.value),
+        )
+        .join(Habit, Completion.habit_id == Habit.id)
         .group_by(Completion.day)
     ).all()
 
-    completion_counts = {
-        day: count
-        for day, count in completion_rows
+    completion_stats = {
+        day: {"count": count, "score": score}
+        for day, count, score in completion_rows
     }
 
     for month_number in range(1, 13):
@@ -251,9 +290,27 @@ def second_page():
 
             cells.append({
                 "date": day,
-                "count": count,
-                "level": min(count, 4),
+                "count": stats["count"],
+                "score": score,
+                "level": level,
             })
+
+                        stats = completion_stats.get(
+                day,
+                {"count": 0, "score": 0},
+            )
+            score = stats["score"]
+
+            if score == 0:
+                level = 0
+            elif score <= 2:
+                level = 1
+            elif score <= 5:
+                level = 2
+            elif score <= 9:
+                level = 3
+            else:
+                level = 4
 
         while len(cells) % 7 != 0:
             cells.append(None)

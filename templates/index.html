@@ -38,23 +38,43 @@
 </header>
   </form>
 </div>
-<form method="post" id="add-habit-form" class="add-habit-form" hidden>
-  <input type="hidden" name="action" value="add_habit">
-  <input
-    type="hidden"
-    name="selected_month"
-    value="{{ selected_month.strftime('%Y-%m') }}"
-  >
-  <input
-    id="new-habit"
-    name="new_habit"
-    type="text"
-    placeholder="Habit name"
-    aria-label="New habit name"
-    required
-  >
-  <button type="submit">Add</button>
-</form>
+<dialog id="add-habit-dialog">
+  <form method="post" class="habit-dialog-form">
+    <input type="hidden" name="action" value="add_habit">
+    <input
+      type="hidden"
+      name="selected_month"
+      value="{{ selected_month.strftime('%Y-%m') }}"
+    >
+
+    <h2>Add a habit</h2>
+
+    <label for="new-habit">Name</label>
+    <input id="new-habit" name="new_habit" type="text" maxlength="80" required>
+
+    <label for="habit-description">Description</label>
+    <textarea id="habit-description" name="description" rows="3"></textarea>
+
+    <label for="habit-value">Value (1–5)</label>
+    <input id="habit-value" name="value" type="number" min="1" max="5" value="1" required>
+
+    <label for="habit-category">Category</label>
+    <select id="habit-category" name="category_id">
+      <option value="">No category</option>
+      {% for category in categories %}
+        <option value="{{ category.id }}">{{ category.name }}</option>
+      {% endfor %}
+    </select>
+
+    <label for="new-category">Or create a category</label>
+    <input id="new-category" name="new_category" type="text" maxlength="80">
+
+    <div class="dialog-actions">
+      <button type="button" id="close-add-habit">Cancel</button>
+      <button type="submit">Add habit</button>
+    </div>
+  </form>
+</dialog>
 
     <form method="post">
       <input type="hidden" name="action" value="save">
@@ -172,16 +192,16 @@ document.querySelectorAll('input[name="completed"]').forEach((checkbox) => {
   });
 });
 const addHabitToggle = document.getElementById("toggle-add-habit");
-const addHabitForm = document.getElementById("add-habit-form");
-const newHabitInput = document.getElementById("new-habit");
+const addHabitDialog = document.getElementById("add-habit-dialog");
+const closeAddHabit = document.getElementById("close-add-habit");
 
 addHabitToggle.addEventListener("click", () => {
-  addHabitForm.hidden = !addHabitForm.hidden;
-  addHabitToggle.setAttribute("aria-expanded", String(!addHabitForm.hidden));
+  addHabitDialog.showModal();
+  document.getElementById("new-habit").focus();
+});
 
-  if (!addHabitForm.hidden) {
-    newHabitInput.focus();
-  }
+closeAddHabit.addEventListener("click", () => {
+  addHabitDialog.close();
 });
 </script>
   {% include "_bottom_nav.html" %}
