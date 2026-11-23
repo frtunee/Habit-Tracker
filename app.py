@@ -286,19 +286,7 @@ def second_page():
 
         for day_in_month in range(1, days_in_month + 1):
             day = date(year, month_number, day_in_month)
-            count = completion_counts.get(day, 0)
-
-            cells.append({
-                "date": day,
-                "count": stats["count"],
-                "score": score,
-                "level": level,
-            })
-
-                        stats = completion_stats.get(
-                day,
-                {"count": 0, "score": 0},
-            )
+            stats = completion_stats.get(day, {"count": 0, "score": 0})
             score = stats["score"]
 
             if score == 0:
@@ -312,6 +300,12 @@ def second_page():
             else:
                 level = 4
 
+            cells.append({
+                "date": day,
+                "count": stats["count"],
+                "score": score,
+                "level": level,
+            })
         while len(cells) % 7 != 0:
             cells.append(None)
 
