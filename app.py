@@ -31,13 +31,37 @@ start_date = date(2026, 11, 23)
 
 default_habits = ["Train", "Learn Python"]
 
+class Category(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), unique=True, nullable=False)
+    habits = db.relationship("Habit", backref="category")
+
+
 class Habit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True, nullable=False)
+    description = db.Column(
+        db.Text,
+        nullable=False,
+        default="",
+        server_default=db.text("''"),
+    )
+    value = db.Column(
+        db.Integer,
+        nullable=False,
+        default=1,
+        server_default=db.text("1"),
+    )
+    category_id = db.Column(db.Integer, db.ForeignKey("category.id"), nullable=True)
+
     completions = db.relationship(
         "Completion",
         backref="habit",
         cascade="all, delete-orphan",
+    )
+
+    __table_args__ = (
+        db.CheckConstraint("value BETWEEN 1 AND 5", name="habit_value_1_to_5"),
     )
 
 
@@ -246,7 +270,3 @@ def second_page():
         heatmap_months=heatmap_months,
     )
 
-with app.app_context():
-    db.create_all()
-if __name__ == "__main__":
-    app.run(debug=True)
