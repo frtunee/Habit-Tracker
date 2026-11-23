@@ -4,6 +4,7 @@ from calendar import monthrange
 import os
 from flask_sqlalchemy import SQLAlchemy
 from zoneinfo import ZoneInfo
+from flask_migrate import Migrate
 
 APP_TIMEZONE = ZoneInfo("Europe/Prague")
 
@@ -24,8 +25,9 @@ app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
-start_date = date(2026, 11, 21)
+start_date = date(2026, 11, 23)
 
 default_habits = ["Train", "Learn Python"]
 

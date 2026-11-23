@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>Habit Tracker</title>
+    <title>Testing [DELETE-ME]</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   </head>
@@ -68,15 +68,17 @@
         <thead>
           <tr>
             <th class="habit-heading">
-  <span>Habit</span>
-  <button
-    type="button"
-    id="toggle-add-habit"
-    class="add-habit-toggle"
-    aria-label="Add a habit"
-    aria-expanded="false"
-  >+</button>
-</th>
+              <div class="habit-heading-content"></div>
+                <span>Habit</span>
+                <button
+                  type="button"
+                  id="toggle-add-habit"
+                  class="add-habit-toggle"
+                  aria-label="Add a habit"
+                  aria-expanded="false"
+                >+</button>
+              </div>
+              </th>
             {% for day in dates %}
              <th>{{ day.strftime("%d.%m.") }}</th>
             {% endfor %}
